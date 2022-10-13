@@ -1,0 +1,277 @@
+-- Creation of the table
+DROP TABLE IF EXISTS unicorn
+CREATE TABLE unicorn(Company VARCHAR(255),	Valuation VARCHAR(50),	Date_Joined DATE, Country VARCHAR(50), City	VARCHAR(50),
+					  Industry VARCHAR(50),	Select_Inverstors VARCHAR(255),	Founded_Year INT, Total_Raised VARCHAR(50),
+					  Financial_Stage VARCHAR(50), Investors_Count INT,	Deal_Terms INT
+);
+
+-- The column Portfolio_Exits needs to be dropped as it not important  
+ALTER TABLE unicorn DROP COLUMN Portfolio_Exits;
+
+-- The data in the industry column is beyond VARCHAR(50)
+ALTER TABLE unicorn ALTER COLUMN industry TYPE VARCHAR(255);
+
+-- The column select_inverstors needs to be rename 
+ALTER TABLE unicorn  RENAME COLUMN select_inverstors TO investors;
+
+-- Checking the data  and see if it needs cleaning  
+SELECT * FROM unicorn;
+
+
+
+-- DATA CLEANING
+-- Update industry column having name Finttech instead of Fintech
+UPDATE unicorn
+SET industry = 'Fintech'
+WHERE company = 'Digital Currency Group';
+
+-- Creating a temp table and then remove the dollar sign from valuation and total_raised
+DROP TABLE IF EXISTS unicorn_t
+CREATE TEMP TABLE unicorn_t(Company VARCHAR(255),	Valuation VARCHAR(255),	Date_Joined DATE, Country VARCHAR(255), 
+						    City VARCHAR(50), Industry VARCHAR(255), Investors VARCHAR(255), Founded_Year INT, 
+							Total_Raised VARCHAR(255),  Financial_Stage VARCHAR(255), Investors_Count INT, Deal_Terms INT
+                           );
+
+INSERT INTO unicorn_t
+SELECT 
+company,
+CASE 
+    WHEN LEFT(valuation , 1) = '$' THEN REPLACE(valuation, '$', '')
+ELSE valuation
+END valuation,
+date_joined,
+country,
+city,
+industry,
+investors,
+founded_year,
+CASE 
+     WHEN LEFT(total_raised , 1) = '$' THEN REPLACE(total_raised, '$', '')												 
+ELSE total_raised
+END total_raised,
+financial_stage,
+investors_count,
+deal_terms
+FROM 
+unicorn;
+
+SELECT * FROM unicorn_t;
+
+
+-- Creating a temp table and then convert valuation and total_raised from varchar to numeric.
+DROP TABLE IF EXISTS unicorn_temp;
+CREATE TEMP TABLE unicorn_temp(Company VARCHAR(255),	Valuation NUMERIC,	Date_Joined DATE, Country VARCHAR(255), 
+					           City VARCHAR(50), Industry VARCHAR(255), Investors VARCHAR(255), Founded_Year INT, 
+							   Total_Raised VARCHAR(50), Financial_Stage VARCHAR(255), Investors_Count INT, Deal_Terms INT
+                              );
+
+INSERT INTO unicorn_temp
+SELECT 
+company,
+CAST(valuation AS NUMERIC) * 1000000000 AS valuation,
+date_joined,
+country,
+city,
+industry,
+investors,
+founded_year,
+CASE 
+   WHEN LENGTH(total_raised) = 4 THEN REPLACE(total_raised, 'M', '.000000')
+   WHEN LENGTH(total_raised) = 4 THEN REPLACE(total_raised, 'K', '.000')
+   WHEN LENGTH(total_raised) = 3 THEN REPLACE(total_raised, 'M', '.000000')
+   WHEN LENGTH(total_raised) = 2 THEN REPLACE(total_raised, 'M', '.000000')
+ELSE total_raised
+END AS total_raised,
+financial_stage,
+investors_count,
+deal_terms
+FROM 
+unicorn_t;
+
+SELECT * FROM  unicorn_temp;
+
+DROP TABLE IF EXISTS unicorn_tempt;
+CREATE TEMP TABLE unicorn_tempt(Company VARCHAR(255), Valuation NUMERIC, Date_Joined DATE, Country VARCHAR(255), 
+					           City VARCHAR(50), Industry VARCHAR(255), Investors VARCHAR(255), Founded_Year INT, 
+							   Total_Raised NUMERIC, Financial_Stage VARCHAR(255), Investors_Count INT, Deal_Terms INT
+                              );
+
+INSERT INTO unicorn_tempt
+SELECT 
+company,
+valuation,
+date_joined,
+country,
+city,
+industry,
+investors,
+founded_year,
+CAST(CASE 
+   WHEN RIGHT(total_raised, 1) = 'B' THEN REPLACE(total_raised, 'B', '000000000')
+   WHEN RIGHT(total_raised, 1) = 'M' THEN REPLACE(total_raised, 'M', '000000')
+   WHEN RIGHT(total_raised, 1) = 'K' THEN REPLACE(total_raised, 'K', '000')
+ELSE total_raised
+END AS NUMERIC) AS total_raised,
+financial_stage,
+investors_count,
+deal_terms
+FROM 
+unicorn_temp;
+
+SELECT * FROM unicorn_tempt;
+
+
+-- Creating a temp table to change the 'B', 'M' and 'K'  in total_raised to their respective figure i.e
+-- Billion, Million and Thousand.
+DROP TABLE IF EXISTS unicorn_temp_1;
+CREATE TEMP TABLE unicorn_temp_1(Company VARCHAR(255),	Valuation NUMERIC,	Date_Joined DATE, Country VARCHAR(255),
+					             City VARCHAR(50), Industry VARCHAR(255), Investors VARCHAR(255), Founded_Year INT, 
+					             Total_Raised NUMERIC, Financial_Stage VARCHAR(255), Investors_Count INT, Deal_Terms INT
+                                );
+
+INSERT INTO unicorn_temp_1
+SELECT 
+company,
+ROUND(valuation,0),
+date_joined,
+country,
+city,
+industry,
+investors,
+founded_year,
+CASE 
+	WHEN RIGHT(CAST(total_raised AS TEXT) , 9) = '000000000' THEN total_raised * 1000000000
+    WHEN RIGHT(CAST(total_raised AS TEXT) , 6) = '000000'   THEN total_raised * 1000000
+	WHEN RIGHT(CAST(total_raised AS TEXT) , 3) = '000'       THEN total_raised * 1000
+ELSE total_raised
+END AS total_raised, 
+financial_stage,
+investors_count,
+deal_terms
+FROM 
+unicorn_tempt;
+
+SELECT * FROM unicorn_temp_1;
+
+
+-- Lets check columns with NULLS
+SELECT * FROM unicorn_temp_1 WHERE company IS NULL;
+
+SELECT * FROM unicorn_temp_1 WHERE valuation IS NULL;
+
+SELECT * FROM unicorn_temp_1 WHERE date_joined IS NULL;
+
+SELECT * FROM unicorn_temp_1 WHERE country IS NULL;
+
+SELECT * FROM unicorn_temp_1 WHERE city IS NULL;
+
+SELECT * FROM unicorn_temp_1 WHERE industry IS NULL;
+
+SELECT * FROM unicorn_temp_1 WHERE investors IS NULL;   -- There is NULL in this column
+
+SELECT * FROM unicorn_temp_1 WHERE founded_year IS NULL;  -- There is NULL in this column
+
+SELECT * FROM unicorn_temp_1 WHERE total_raised IS NULL; -- There is NULL in this column
+
+SELECT * FROM unicorn_temp_1 WHERE financial_stage IS NULL; --There is NULL in this column
+
+SELECT * FROM unicorn_temp_1 WHERE investors_count IS NULL; --There is NULL in this column
+
+SELECT * FROM unicorn_temp_1 WHERE deal_terms IS NULL; --There is NULL in this column
+
+
+-- Lets see unique values in the columns 
+SELECT DISTINCT company FROM unicorn_temp_1;
+
+SELECT DISTINCT valuation FROM unicorn_temp_1;
+
+SELECT DISTINCT date_joined FROM unicorn_temp_1;
+
+SELECT DISTINCT country FROM unicorn_temp_1;
+
+SELECT DISTINCT city FROM unicorn_temp_1 ;
+
+SELECT DISTINCT industry FROM unicorn_temp_1 ;
+
+SELECT DISTINCT investors FROM unicorn_temp_1;   
+
+SELECT DISTINCT founded_year FROM unicorn_temp_1;  
+
+SELECT DISTINCT total_raised FROM unicorn_temp_1 ; 
+
+SELECT DISTINCT financial_stage FROM unicorn_temp_1; 
+
+SELECT DISTINCT investors_count FROM unicorn_temp_1; 
+
+SELECT DISTINCT deal_terms FROM unicorn_temp_1 ; 
+
+
+-- ANALYSIS
+--Lets see the date_joined and valuation
+SELECT country, valuation
+FROM unicorn_temp_1;
+
+--Lets see the date_joined and total_raised
+SELECT date_joined, ROUND(total_raised,0)
+FROM unicorn_temp_1;
+
+
+-- Lets see the trend of valuation by joined_date
+SELECT date_joined, SUM(valuation) AS valuation
+FROM unicorn_temp_1
+GROUP BY date_joined
+ORDER BY valuation DESC;
+
+-- Lets see the trend of total_raised as at joined_date
+SELECT date_joined, ROUND(SUM(total_raised),0) AS total_raised
+FROM unicorn_temp_1
+WHERE total_raised IS NOT NULL
+GROUP BY date_joined
+ORDER BY total_raised DESC;
+
+-- Let's see country with company having highest valuation
+SELECT country, SUM(valuation) AS valuation
+FROM unicorn_temp_1
+GROUP BY country
+ORDER BY valuation DESC;
+
+
+-- Let's see country with company having highest valuation
+SELECT country, ROUND(SUM(total_raised),0) AS total_raised
+FROM unicorn_temp_1
+GROUP BY country
+ORDER BY total_raised DESC;
+
+-- Lets see country with most industry
+SELECT country, COUNT(industry) AS count_of_industry
+FROM unicorn_temp_1
+GROUP BY country
+ORDER BY count_of_industry DESC;
+
+-- Lets see industry with most valuation
+SELECT industry, SUM(valuation) AS valuation
+FROM unicorn_temp_1
+GROUP BY industry
+ORDER BY valuation DESC;
+
+-- Let's see valuation by year founded
+SELECT founded_year, SUM(valuation) AS valuation
+FROM unicorn_temp_1
+WHERE founded_year IS NOT NULL
+GROUP BY founded_year
+ORDER BY  valuation DESC;
+
+-- Let's see total_raised by year founded
+SELECT industry, founded_year,ROUND(SUM(total_raised),0) AS total_raised
+FROM unicorn_temp_1
+WHERE founded_year IS NOT NULL AND total_raised IS NOT NULL
+GROUP BY founded_year, industry
+ORDER BY  total_raised DESC;
+
+-- Lets see investor count by industry
+SELECT 
+industry,
+COUNT(investors) AS number_of_investors
+FROM unicorn_temp_1
+GROUP BY industry
+ORDER BY number_of_investors DESC;
