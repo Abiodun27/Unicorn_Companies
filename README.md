@@ -6,8 +6,7 @@ In this project, data science & analytics skills were used to explore the data, 
 The dataset used was obtained from Kaggle, which includes columns such as 'Company', 'Valuation', 'Date_joined', 'Country', 'City', 'Industry',
 'Investors', 'Founded_year', 'Total_raised', 'Financial_stage', 'Investors_count', 'Deal_terms'.
 
-The Sales database was created in Postgresql with the table which contains the columns listed above. The data was inspected, so as to have an understanding of 
-some of its features, check for missing values and duplicates. Analysis was then performed on the data by answering certain questions using SQL, followed by getting
+The Unicorn company database was created in Postgresql with the table which contains the columns listed above. The data was inspected, so as to have an understanding of some of its features, check for missing values and duplicates. Analysis was then performed on the data by answering certain questions using SQL, followed by getting
 more insight by visualization using Tableau. The following questions are answered during the analysis:
 
 * Which country has companies with most valuation?
