@@ -34,4 +34,4 @@ etc.
 * Exploratory Data Analysis
 * data processing/cleaning
 
-# Project Status: Completed
+# Project Status: Completed.
