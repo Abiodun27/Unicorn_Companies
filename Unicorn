@@ -275,3 +275,20 @@ COUNT(investors) AS number_of_investors
 FROM unicorn_temp_1
 GROUP BY industry
 ORDER BY number_of_investors DESC;
+
+VISUALIZATION
+For Visualization, Tableau Public is used to answer the question of the analysis and to obtain more insight, the tableau public url is given below:
+https://public.tableau.com/app/profile/thomas.abiodun.olumide/viz/Unicorn_16656096732250/Dashboard1?publish=yes
+
+Conclusion
+What can we do with the details of this analysis?
+
+1. The Country with companies having most valuation is the United States of America.
+2. Thesame country has the highest number of industries.
+3. The industry with the most valuation is the Fintech.
+4. The founded year with most valuation is 2012 with a valuation of $573,300,000,000.
+4. The founded year with most funding is 2015 with a Total_funding raised of $92,972,630,000.
+5. Productline most frequently purchased together, can be given discount to drive more sales.
+6. The total number of investors is 1020.
+7. The total funding raised by all the companies is $572,620,000,000.
+8. The total funding raised by all the companies is $3,311,600,000,000.
